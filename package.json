@@ -1,0 +1,42 @@
+{
+  "name": "cfn-execute-change-set",
+  "version": "0.0.1",
+  "description": "A tool for reviewing and executing AWS CloudFormation change sets.",
+  "main": "index.js",
+  "bin": {
+    "cfn-execute-change-set": "index.js"
+  },
+  "scripts": {
+    "test": "nyc --all mocha",
+    "lint": "standard"
+  },
+  "keywords": [
+    "aws",
+    "cloudformation",
+    "cfn",
+    "event",
+    "cli"
+  ],
+  "author": "Sami Jaktholm <sjakthol@outlook.com>",
+  "license": "MIT",
+  "repository": "sjakthol/cfn-execute-change-set",
+  "dependencies": {
+    "aws-sdk": "^2.110.0",
+    "chalk": "^2.1.0",
+    "lodash.groupby": "^4.6.0",
+    "ttys": "0.0.3"
+  },
+  "engines": {
+    "node": ">=4"
+  },
+  "pre-commit": [
+    "lint"
+  ],
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^3.5.0",
+    "nyc": "^11.2.1",
+    "pre-commit": "^1.2.2",
+    "standard": "^10.0.3"
+  }
+}
