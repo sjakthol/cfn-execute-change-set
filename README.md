@@ -1,4 +1,4 @@
-A command line interface for reviewing and executing AWS CloudFormation changesets.
+A command line tool for reviewing and executing AWS CloudFormation change sets.
 
 ## Features
 
