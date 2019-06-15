@@ -4,7 +4,12 @@
 const readline = require('readline')
 
 const chalk = require('chalk')
-const ttys = require('ttys')
+let ttys = null
+try {
+  ttys = require('ttys')
+} catch (e) {
+  console.log('Note: Cannot prompt for input. Assuming YES after timeout!')
+}
 
 const analysis = require('./lib/analysis')
 const cfn = require('./lib/cfn')
@@ -124,8 +129,26 @@ function printResourceChanges (changes) {
 
 /**
  * @param {AWS.CloudFormation.DescribeChangeSetOutput} changeset
+ * @param {Number} wait - wait time in seconds
+ */
+function waitAndExecuteChanges (changeset, wait) {
+  process.stderr.write(wait + '. ')
+  if (wait) {
+    return setTimeout(waitAndExecuteChanges, 1000, changeset, wait - 1)
+  } else {
+    console.log('Executing change set')
+    cfn.executeChangeSet(changeset)
+  }
+}
+
+/**
+ * @param {AWS.CloudFormation.DescribeChangeSetOutput} changeset
  */
 function promptAndExecuteChanges (changeset) {
+  if (!ttys) {
+    console.log('Executing changeset in 10 seconds. Press CTRL+C to abort!')
+    return waitAndExecuteChanges(changeset, 10)
+  }
   const i = readline.createInterface(ttys.stdin, ttys.stdout)
   console.log() // Empty line
   i.question('Execute change set [y/N]? ', function (answer) {
