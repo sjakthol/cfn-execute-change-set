@@ -43,8 +43,8 @@ describe('analysis module', function () {
     }, {
       desc: 'modified properties',
       input: {
-        prev: { 'a': 123 },
-        next: { 'a': 456 }
+        prev: { a: 123 },
+        next: { a: 456 }
       },
       output: {
         added: [],
@@ -54,8 +54,8 @@ describe('analysis module', function () {
     }, {
       desc: 'unchanged properties',
       input: {
-        prev: { 'a': 123 },
-        next: { 'a': 123 }
+        prev: { a: 123 },
+        next: { a: 123 }
       },
       output: {
         added: [],

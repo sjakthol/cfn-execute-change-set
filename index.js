@@ -82,7 +82,7 @@ function printKeyValueChanges (changes, title) {
    * @param {KeyValueChange[]} changes
    */
   function _printKeyValueChanges (action, changes) {
-    for (let change of changes) {
+    for (const change of changes) {
       const type = renderers.renderAction({ Action: action })
       const summary = renderers.renderKeyValueChange(change)
       console.log(`${type} ${summary}`)
@@ -105,16 +105,16 @@ function printResourceChanges (changes) {
    * @param {AWS.CloudFormation.ResourceChange[]} changes
    */
   function _printResources (changes) {
-    for (let change of changes) {
+    for (const change of changes) {
       const type = renderers.renderAction(change)
       const resource = renderers.renderResourceSummary(change)
       const replacement = renderers.renderReplacement(change)
       console.log(`${type} ${resource}${replacement}`)
 
-      for (let detail of change.Details) {
+      for (const detail of change.Details) {
         const recreation = renderers.renderRecreation(detail)
         console.log(`    - ${detail.Summary}${recreation}`)
-        for (let cause of (detail.Causes || [])) {
+        for (const cause of (detail.Causes || [])) {
           console.log(`        caused by ${cause}`)
         }
       }
