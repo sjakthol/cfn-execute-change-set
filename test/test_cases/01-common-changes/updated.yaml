@@ -51,3 +51,14 @@ Resources:
     Properties:
       # TopicName: !Sub ${AWS::StackName}-initial
       TopicName: !Sub ${AWS::StackName}-updated
+
+  # Change caused by new resource
+  # Topic9A:
+  Topic9B:
+    Type: AWS::SNS::Topic
+
+  Topic10:
+    Type: AWS::SNS::Topic
+    Properties:
+      # DisplayName: !GetAtt Topic9A.TopicName
+      DisplayName: !GetAtt Topic9B.TopicName
