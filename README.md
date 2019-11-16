@@ -7,7 +7,7 @@ A command line tool for reviewing and executing AWS CloudFormation change sets.
 * View the chain of causes that leads to resource changes (experimental)
 * Review changes and execute them right away
 
-**Note**: Resource change cause chians are experimental and might not be fully
+**Note**: Resource change cause chains are experimental and might not be fully
 accurate. Always review the raw change set input if you are unsure how changes
 propagate to resources.
 
@@ -18,12 +18,15 @@ npm i -g cfn-execute-change-set
 
 ## Usage
 
-To review and execute a changeset, just pipe the output of the awscli
+To review and execute a changeset, just pipe the output of the AWS CLI
 `create-change-set` command to the `cfn-execute-change-set` tool:
 
 ```
 aws cloudformation create-change-set [...] | cfn-execute-change-set
 ```
+
+Piping the output of `aws cloudformation deploy --no-execute-change-set` is
+also supported.
 
 Alternatively, you can provide a CloudFormation change set ARNs as command line
 argument:
@@ -63,6 +66,18 @@ Stack update started:
 - Stack ARN: arn:aws:cloudformation:eu-west-1:748888633826:stack/ew1-test/e0496e10-fe10-11e7-8420-50fae9b818d2
 ```
 
-## Ideas / TODO
-* Improve and clean up code that determines root cause for resource changes
-* More tests
+## Development
+
+### Integration Test
+
+The test suite includes an integration test that calls live AWS APIs. The integration test requires
+valid AWS credentials that are allowed to
+* Create, Describe and Delete CloudFormation stacks
+* Create and Describe change sets
+* Create, Delete and Update SNS topics (used as sample resource)
+
+If the AWS SDK cannot find valid AWS credentials, the integration test is skipped. If the SDK finds
+credentials which cannot perform these operations, the integration test will fail.
+
+### Ideas
+* Support change sets that import resources.

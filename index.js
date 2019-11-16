@@ -23,8 +23,9 @@ let found = false
  * starts review if one is found.
  *
  * @param {String} input the input to parse
+ * @param {Boolean} [skipExec=false] set to true to skip execution of change set (for tests)
  */
-function maybeReviewChangeSet (input) {
+async function maybeReviewChangeSet (input, skipExec = false) {
   if (found) {
     return
   }
@@ -36,20 +37,20 @@ function maybeReviewChangeSet (input) {
 
   found = true
 
-  cfn.describeChangeSet(info, function (err, data) {
-    if (err) throw err
+  const data = await cfn.describeChangeSet(info)
 
-    const resourceChanges = analysis.analyzeResourceChanges(data.changeset)
-    printResourceChanges(resourceChanges)
+  const resourceChanges = analysis.analyzeResourceChanges(data.changeset)
+  printResourceChanges(resourceChanges)
 
-    const tagChanges = analysis.analyzeTagChanges(data.changeset, data.stack)
-    printKeyValueChanges(tagChanges, 'Tag Changes')
+  const tagChanges = analysis.analyzeTagChanges(data.changeset, data.stack)
+  printKeyValueChanges(tagChanges, 'Tag Changes')
 
-    const parameterChanges = analysis.analyzeParameterChanges(data.changeset, data.stack)
-    printKeyValueChanges(parameterChanges, 'Parameter Changes')
+  const parameterChanges = analysis.analyzeParameterChanges(data.changeset, data.stack)
+  printKeyValueChanges(parameterChanges, 'Parameter Changes')
 
+  if (!skipExec) {
     promptAndExecuteChanges(data.changeset)
-  })
+  }
 }
 
 /**
@@ -179,4 +180,9 @@ if (!process.stdin.isTTY) {
     console.log(line)
     maybeReviewChangeSet(line)
   })
+}
+
+// For testing
+module.exports = {
+  maybeReviewChangeSet
 }
