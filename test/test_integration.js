@@ -13,7 +13,7 @@ describe('integration test', function () {
     delete require.cache[require.resolve('../index')]
   })
 
-  this.timeout(60000)
+  this.timeout(120000)
 
   const CASE_DIR = path.join(__dirname, 'test_cases')
   const CASES = fs.readdirSync(CASE_DIR)
@@ -27,7 +27,12 @@ describe('integration test', function () {
        */
       let stack
 
-      before(async function () {
+      /**
+       * @type {AWS.CloudFormation.CreateChangeSetOutput}
+       */
+      let chgset
+
+      beforeEach(async function () {
         const suite = this
         console.log(`[${testcase}] SETUP: Creating stack ${StackName}`)
         const TemplateBody = fs.readFileSync(path.join(CASE_DIR, testcase, 'initial.yaml'), { encoding: 'utf-8' })
@@ -46,9 +51,16 @@ describe('integration test', function () {
 
         await cfn.waitFor('stackCreateComplete', { StackName: stack.StackId }).promise()
         console.log(`[${testcase}] SETUP: Stack ${StackName} ready`)
+
+        const updatedTemplate = fs.readFileSync(path.join(CASE_DIR, testcase, 'updated.yaml'), { encoding: 'utf-8' })
+        chgset = await cfn.createChangeSet({
+          ChangeSetName: 'integration-test',
+          StackName: stack.StackId,
+          TemplateBody: updatedTemplate
+        }).promise()
       })
 
-      after(async () => {
+      afterEach(async () => {
         if (stack) {
           console.log(`[${testcase}] CLEANUP: Deleting stack ${StackName}`)
           await cfn.deleteStack({ StackName: stack.StackId }).promise()
@@ -57,17 +69,22 @@ describe('integration test', function () {
         }
       })
 
-      it('should not cause crashes in the tool', async function () {
-        const TemplateBody = fs.readFileSync(path.join(CASE_DIR, testcase, 'updated.yaml'), { encoding: 'utf-8' })
+      it('should analyze change set without crashing', async function () {
         const index = require('../index')
-
-        const chgset = await cfn.createChangeSet({
-          ChangeSetName: 'integration-test',
-          StackName: stack.StackId,
-          TemplateBody
-        }).promise()
-
         await index.maybeReviewChangeSet(chgset.Id, true)
+      })
+
+      it('should execute a change set correctly', async function () {
+        const index = require('../index')
+        process.env.PROMPT_ANSWER = 'y'
+        await index.maybeReviewChangeSet(chgset.Id)
+        await cfn.waitFor('stackUpdateComplete', { StackName: stack.StackId }).promise()
+      })
+
+      it('should skip execution if negative answer is given', async function () {
+        const index = require('../index')
+        process.env.PROMPT_ANSWER = 'N'
+        await index.maybeReviewChangeSet(chgset.Id)
       })
     })
   }

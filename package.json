@@ -7,8 +7,9 @@
     "cfn-execute-change-set": "index.js"
   },
   "scripts": {
+    "pretest": "npm run lint",
     "test": "nyc --all mocha",
-    "posttest": "nyc report --reporter html && npm run lint",
+    "posttest": "nyc report --reporter html",
     "lint": "standard"
   },
   "files": [

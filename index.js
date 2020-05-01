@@ -16,7 +16,11 @@ const cfn = require('./lib/cfn')
 const helpers = require('./lib/helpers')
 const renderers = require('./lib/renderers')
 
-let found = false
+let chain = Promise.resolve(true)
+
+function queueChangeSet (input) {
+  chain = chain.then(() => maybeReviewChangeSet(input))
+}
 
 /**
  * Checks the given input for CloudFormation changeset ARN and
@@ -26,18 +30,19 @@ let found = false
  * @param {Boolean} [skipExec=false] set to true to skip execution of change set (for tests)
  */
 async function maybeReviewChangeSet (input, skipExec = false) {
-  if (found) {
-    return
-  }
-
   const info = helpers.getChangeSetInfoFromInput(input)
   if (!info) {
     return
   }
 
-  found = true
-
   const data = await cfn.describeChangeSet(info)
+
+  const stack = data.changeset.StackName
+  const name = data.changeset.ChangeSetName
+  console.log(chalk.bold('Summary'))
+  console.log(`- Stack Name: ${stack}`)
+  console.log(`- Change Set Name: ${name}`)
+  console.log()
 
   const resourceChanges = analysis.analyzeResourceChanges(data.changeset)
   printResourceChanges(resourceChanges)
@@ -49,7 +54,7 @@ async function maybeReviewChangeSet (input, skipExec = false) {
   printKeyValueChanges(parameterChanges, 'Parameter Changes')
 
   if (!skipExec) {
-    promptAndExecuteChanges(data.changeset)
+    return promptAndExecuteChanges(data.changeset)
   }
 }
 
@@ -132,40 +137,44 @@ function printResourceChanges (changes) {
  * @param {AWS.CloudFormation.DescribeChangeSetOutput} changeset
  * @param {Number} wait - wait time in seconds
  */
-function waitAndExecuteChanges (changeset, wait) {
-  process.stderr.write(wait + '. ')
-  if (wait) {
-    return setTimeout(waitAndExecuteChanges, 1000, changeset, wait - 1)
-  } else {
-    console.log('Executing change set')
-    cfn.executeChangeSet(changeset)
+async function waitAndExecuteChanges (changeset, wait) {
+  while (wait > 0) {
+    process.stderr.write(wait + '. ')
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    wait -= 1
   }
+
+  console.log('Executing change set')
+  return cfn.executeChangeSet(changeset)
 }
 
 /**
  * @param {AWS.CloudFormation.DescribeChangeSetOutput} changeset
  */
-function promptAndExecuteChanges (changeset) {
+async function promptAndExecuteChanges (changeset) {
   if (!ttys) {
     console.log('Executing changeset in 10 seconds. Press CTRL+C to abort!')
     return waitAndExecuteChanges(changeset, 10)
   }
   const i = readline.createInterface(ttys.stdin, ttys.stdout)
   console.log() // Empty line
-  i.question('Execute change set [y/N]? ', function (answer) {
-    if (answer === 'y') {
-      console.log('Executing change set...')
-      cfn.executeChangeSet(changeset)
-    } else {
-      console.log('Skipping change set execution')
-      process.exit(0)
-    }
-  })
+
+  const answer = process.env.PROMPT_ANSWER || await new Promise(resolve => i.question('Execute change set [y/N]? ', resolve))
+  i.close()
+  if (answer === 'y') {
+    console.log('Executing change set...')
+    return cfn.executeChangeSet(changeset)
+  } else {
+    console.log('Skipping change set execution')
+    return true
+  }
 }
 
 // See if we have a changeset ARN(s) given as command line argument(s)
 if (process.argv.length > 2) {
-  maybeReviewChangeSet(process.argv[2])
+  for (const input of process.argv.slice(2)) {
+    queueChangeSet(input)
+  }
 }
 
 // Also check if we have been piped some input and detect changeset
@@ -178,7 +187,11 @@ if (!process.stdin.isTTY) {
   rl.on('line', line => {
     // echo to stdout
     console.log(line)
-    maybeReviewChangeSet(line)
+    queueChangeSet(line)
+  })
+
+  rl.on('close', () => {
+    chain.then(() => process.exit(0))
   })
 }
 
