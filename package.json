@@ -27,7 +27,7 @@
   "license": "MIT",
   "repository": "sjakthol/cfn-execute-change-set",
   "dependencies": {
-    "aws-sdk": "^2.254.1",
+    "aws-sdk": "^2.787.0",
     "chalk": "^2.4.1",
     "lodash.groupby": "^4.6.0",
     "ttys": "0.0.3"
