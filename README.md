@@ -7,10 +7,6 @@ A command line tool for reviewing and executing AWS CloudFormation change sets.
 * View the chain of causes that leads to resource changes (experimental)
 * Review changes and execute them right away
 
-**Note**: Resource change cause chains are experimental and might not be fully
-accurate. Always review the raw change set input if you are unsure how changes
-propagate to resources.
-
 ## Installation
 ```
 npm i -g cfn-execute-change-set
