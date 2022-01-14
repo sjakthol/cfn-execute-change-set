@@ -149,7 +149,7 @@ async function waitAndExecuteChanges (changeset, wait) {
 }
 
 /**
- * @param {AWS.CloudFormation.DescribeChangeSetOutput} changeset
+ * @param {import('@aws-sdk/client-cloudformation').DescribeChangeSetOutput} changeset
  */
 async function promptAndExecuteChanges (changeset) {
   if (!ttys) {
