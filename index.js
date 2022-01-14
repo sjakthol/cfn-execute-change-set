@@ -102,13 +102,13 @@ function printKeyValueChanges (changes, title) {
 
 /**
  * @param {Object} changes
- * @param {AWS.CloudFormation.ResourceChange[]} changes.added
- * @param {AWS.CloudFormation.ResourceChange[]} changes.removed
- * @param {AWS.CloudFormation.ResourceChange[]} changes.modified
+ * @param {import('@aws-sdk/client-cloudformation').ResourceChange[]} changes.added
+ * @param {import('@aws-sdk/client-cloudformation').ResourceChange[]} changes.removed
+ * @param {import('@aws-sdk/client-cloudformation').ResourceChange[]} changes.modified
  */
 function printResourceChanges (changes) {
   /**
-   * @param {AWS.CloudFormation.ResourceChange[]} changes
+   * @param {import('@aws-sdk/client-cloudformation').ResourceChange[]} changes
    */
   function _printResources (changes) {
     for (const change of changes) {
@@ -134,7 +134,7 @@ function printResourceChanges (changes) {
 }
 
 /**
- * @param {AWS.CloudFormation.DescribeChangeSetOutput} changeset
+ * @param {import('@aws-sdk/client-cloudformation').DescribeChangeSetOutput} changeset
  * @param {Number} wait - wait time in seconds
  */
 async function waitAndExecuteChanges (changeset, wait) {
