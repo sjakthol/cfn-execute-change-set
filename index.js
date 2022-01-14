@@ -44,6 +44,11 @@ async function maybeReviewChangeSet (input, skipExec = false) {
   console.log(`- Change Set Name: ${name}`)
   console.log()
 
+  if (!data.changeset.Changes || !data.changeset.Changes.length) {
+    console.log(chalk.bold('No changes'))
+    return
+  }
+
   const resourceChanges = analysis.analyzeResourceChanges(data.changeset)
   printResourceChanges(resourceChanges)
 
