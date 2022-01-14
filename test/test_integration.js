@@ -83,18 +83,14 @@ describe('integration test', function () {
 
   this.timeout(120000)
 
-  for (const testcase of fs.readdirSync(CASE_DIR)) {
-    describe(testcase, function () {
-      it('should analyze change set without crashing', async function () {
-        const changeSetId = await createTestStackAndChangeSet(testcase)
-        if (!changeSetId) {
-          return this.skip()
-        }
-        const index = require('../index')
-        await index.maybeReviewChangeSet(changeSetId, true)
-      })
-    })
-  }
+  it('should analyze change set without crashing', async function () {
+    const changeSetId = await createTestStackAndChangeSet('01-common-changes')
+    if (!changeSetId) {
+      return this.skip()
+    }
+    const index = require('../index')
+    await index.maybeReviewChangeSet(changeSetId, true)
+  })
 
   it('should execute a change set correctly', async function () {
     const changeSetId = await createTestStackAndChangeSet('01-common-changes')
