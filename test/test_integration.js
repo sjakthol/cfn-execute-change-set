@@ -111,4 +111,13 @@ describe('integration test', function () {
     process.env.PROMPT_ANSWER = 'N'
     await index.maybeReviewChangeSet(changeSetId)
   })
+
+  it('should handle change sets with no changes', async function () {
+    const changeSetId = await createTestStackAndChangeSet('02-no-changes')
+    if (!changeSetId) {
+      return this.skip()
+    }
+    const index = require('../index')
+    await index.maybeReviewChangeSet(changeSetId, true)
+  })
 })
