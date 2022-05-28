@@ -7,7 +7,7 @@
     "cfn-execute-change-set": "index.js"
   },
   "scripts": {
-    "test": "nyc --all mocha",
+    "test": "c8 --all mocha",
     "lint": "standard"
   },
   "files": [
@@ -34,9 +34,9 @@
     "node": ">=4"
   },
   "devDependencies": {
+    "c8": "^7.11.3",
     "chai": "^4.3.4",
     "mocha": "^10.0.0",
-    "nyc": "^15.1.0",
     "standard": "^17.0.0"
   }
 }
