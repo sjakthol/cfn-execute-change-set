@@ -45,8 +45,12 @@ async function maybeReviewChangeSet (input, skipExec = false) {
   console.log()
 
   if (!data.changeset.Changes || !data.changeset.Changes.length) {
-    console.log(chalk.bold('No changes'))
-    return
+    if (data.changeset.ExecutionStatus === 'UNAVAILABLE') {
+      console.log(chalk.bold('No changes'), data.changeset.StatusReason)
+      return
+    } else {
+      console.log(chalk.bold('No resource, parameter or tag changes.'), 'Outputs may change but changes to outputs cannot be reviewed.')
+    }
   }
 
   const resourceChanges = analysis.analyzeResourceChanges(data.changeset)
@@ -130,6 +134,11 @@ function printResourceChanges (changes) {
         }
       }
     }
+  }
+
+  if (!changes.added.length && !changes.removed.length && !changes.modified.length) {
+    // No resource changes!
+    return
   }
 
   console.log(chalk.bold('Resource Changes'))
