@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1 - 2023-10-07
+
+* Fix parsing of change set arn from stdin if stdin contains terminal control characters (e.g. colors)
+* Fix error in handling changes to UpdateReplacePolicy field of a resource
+
 ## 1.1.0 - 2023-02-08
 
 ### Changed
