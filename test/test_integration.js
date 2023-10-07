@@ -129,4 +129,13 @@ describe('integration test', function () {
     const index = require('../index')
     await index.maybeReviewChangeSet(changeSetId, true)
   })
+
+  it('should handle change sets with metadata only changes', async function () {
+    const changeSetId = await createTestStackAndChangeSet('04-metadata-changes')
+    if (!changeSetId) {
+      return this.skip()
+    }
+    const index = require('../index')
+    await index.maybeReviewChangeSet(changeSetId, true)
+  })
 })

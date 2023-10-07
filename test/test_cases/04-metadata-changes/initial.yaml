@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+  R1:
+    DeletionPolicy: Retain
+    Type: AWS::CloudFormation::WaitConditionHandle
+
+  R2:
+    UpdateReplacePolicy: Retain
+    Type: AWS::CloudFormation::WaitConditionHandle
+
+  R3:
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Type: AWS::CloudFormation::WaitConditionHandle
