@@ -48,6 +48,15 @@ describe('helpers module', function () {
       desc: 'whitespace only input',
       input: '\n',
       output: null
+    }, {
+      desc: 'text input with control characters',
+      // eslint-disable-next-line no-tabs
+      input: 'arn:aws:cloudformation:eu-west-1:000000000000:changeSet/test/c785c2b0-63fc-11e7-94dc-500c423e34d2\x1B[0m\n',
+      output: {
+        arn: 'arn:aws:cloudformation:eu-west-1:000000000000:changeSet/test/c785c2b0-63fc-11e7-94dc-500c423e34d2',
+        region: 'eu-west-1',
+        name: 'test'
+      }
     }]
 
     cases.forEach(function (test) {
