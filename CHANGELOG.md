@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.2 - 2023-11-18
+
+* Add workaround for a credential resolution issue in AWS SDK for Javascript v3 (https://github.com/aws/aws-sdk-js-v3/issues/4757)
+
 ## 1.1.1 - 2023-10-07
 
 * Fix parsing of change set arn from stdin if stdin contains terminal control characters (e.g. colors)
