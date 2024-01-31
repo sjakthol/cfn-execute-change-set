@@ -1,6 +1,6 @@
 {
   "name": "cfn-execute-change-set",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "A tool for reviewing and executing AWS CloudFormation change sets.",
   "main": "index.js",
   "bin": {
