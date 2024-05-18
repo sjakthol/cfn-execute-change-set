@@ -1,64 +1,64 @@
 AWSTemplateFormatVersion: 2010-09-09
 
 Parameters:
-  Topic4DisplayName:
+  RetentionInDays:
     Description: Parameter
-    Type: String
-    # Default: initial
-    Default: updated
+    Type: Number
+    # Default: 1
+    Default: 3
 
 Resources:
   # Additions removals
-  # Topic1:
-  #   Type: AWS::SNS::Topic
+  # R1:
+  #   Type: AWS::CloudFormation::WaitConditionHandle
 
-  Topic2:
-    Type: AWS::SNS::Topic
+  R2:
+    Type: AWS::CloudFormation::WaitConditionHandle
 
-  Topic3:
-    Type: AWS::SNS::Topic
+  R3:
+    Type: AWS::CloudFormation::WaitConditionHandle
 
   # Modifications via parameters
-  Topic4:
-    Type: AWS::SNS::Topic
+  R4:
+    Type: AWS::Logs::LogGroup
     Properties:
-      DisplayName: !Ref Topic4DisplayName
+      RetentionInDays: !Ref RetentionInDays
 
   # Tag changes
-  Topic5:
-    Type: AWS::SNS::Topic
+  R5:
+    Type: AWS::Logs::LogGroup
     Properties:
       Tags:
         # - { Key: Name, Value: initial }
         - { Key: Name, Value: updated }
 
   # Resource changes
-  Topic6:
-    Type: AWS::SNS::Topic
+  R6:
+    Type: AWS::Logs::LogGroup
     Properties:
-      DisplayName: !Ref Topic4DisplayName
+      RetentionInDays: !Ref RetentionInDays
 
-  Topic7:
-    Type: AWS::SNS::Topic
+  R7:
+    Type: AWS::Logs::LogGroup
     Properties:
-      DisplayName: !GetAtt Topic6.TopicName
+      LogGroupName: !Sub ${R6}-2
       Tags:
-        - { Key: Name, Value: !GetAtt Topic6.TopicName }
+        - { Key: Name, Value: !Sub "${R6}-2" }
 
   # Resource changes that cause replacement
-  Topic8:
-    Type: AWS::SNS::Topic
+  R8:
+    Type: AWS::Logs::LogGroup
     Properties:
-      # TopicName: !Sub ${AWS::StackName}-initial
-      TopicName: !Sub ${AWS::StackName}-updated
+      # LogGroupName: !Sub ${AWS::StackName}-initial
+      LogGroupName: !Sub ${AWS::StackName}-updated
 
   # Change caused by new resource
-  # Topic9A:
-  Topic9B:
-    Type: AWS::SNS::Topic
+  # R9A:
+  R9B:
+    Type: AWS::Logs::LogGroup
 
-  Topic10:
-    Type: AWS::SNS::Topic
+  R10:
+    Type: AWS::Logs::LogGroup
     Properties:
-      # DisplayName: !GetAtt Topic9A.TopicName
-      DisplayName: !GetAtt Topic9B.TopicName
+      # LogGroupName: !Sub ${R9A}-2
+      LogGroupName: !Sub ${R9B}-2
