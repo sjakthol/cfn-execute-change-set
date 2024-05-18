@@ -1,9 +1,7 @@
 'use strict'
 /* eslint-env mocha */
-const chai = require('chai')
-const expect = chai.expect
-
-const analysis = require('../lib/analysis')
+import { expect } from 'chai'
+import analysis from '../lib/analysis.js'
 
 describe('analysis module', function () {
   describe('generateKeyValueChanges()', function () {

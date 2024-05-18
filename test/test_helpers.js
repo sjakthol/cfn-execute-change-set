@@ -1,9 +1,8 @@
 /* eslint-env mocha */
 'use strict'
-const chai = require('chai')
-const expect = chai.expect
+import { expect } from 'chai'
 
-const helpers = require('../lib/helpers')
+import helpers from '../lib/helpers.js'
 
 describe('helpers module', function () {
   describe('getChangeSetInfoFromInput()', function () {

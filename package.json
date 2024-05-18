@@ -2,7 +2,8 @@
   "name": "cfn-execute-change-set",
   "version": "1.2.0",
   "description": "A tool for reviewing and executing AWS CloudFormation change sets.",
-  "main": "index.js",
+  "type": "module",
+  "script": "index.js",
   "bin": {
     "cfn-execute-change-set": "index.js"
   },
@@ -31,7 +32,7 @@
     "ttys": "0.0.3"
   },
   "engines": {
-    "node": ">=4"
+    "node": ">=16"
   },
   "devDependencies": {
     "c8": "^9.0.0",

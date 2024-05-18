@@ -1,20 +1,23 @@
 'use strict'
 /* eslint-env mocha */
-const crypto = require('crypto')
-const fs = require('fs')
-const path = require('path')
-const {
+import crypto from 'crypto'
+import fs from 'fs'
+import path, { dirname } from 'path'
+import { fileURLToPath } from 'url'
+import {
   CloudFormationClient,
   CreateChangeSetCommand,
   CreateStackCommand,
   DeleteStackCommand,
   waitUntilStackCreateComplete
-} = require('@aws-sdk/client-cloudformation')
+} from '@aws-sdk/client-cloudformation'
 
 const RUN_ID = Date.now() + '-' + crypto.randomBytes(4).toString('hex')
 const cfn = new CloudFormationClient({})
 const stacks = []
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 const CASE_DIR = path.join(__dirname, 'test_cases')
 
 /**
@@ -70,10 +73,6 @@ async function createTestStackAndChangeSet (testcase) {
 }
 
 describe('integration test', function () {
-  beforeEach(() => {
-    delete require.cache[require.resolve('../index')]
-  })
-
   after(async () => {
     await Promise.all(stacks.map(async stack => {
       console.error(`Deleting stack ${stack}`)
@@ -88,7 +87,7 @@ describe('integration test', function () {
     if (!changeSetId) {
       return this.skip()
     }
-    const index = require('../index')
+    const index = await import(`../index.js?version=${Date.now() + Math.random()}`)
     await index.maybeReviewChangeSet(changeSetId, true)
   })
 
@@ -97,7 +96,7 @@ describe('integration test', function () {
     if (!changeSetId) {
       return this.skip()
     }
-    const index = require('../index')
+    const index = await import(`../index.js?version=${Date.now() + Math.random()}`)
     process.env.PROMPT_ANSWER = 'y'
     await index.maybeReviewChangeSet(changeSetId)
   })
@@ -107,7 +106,7 @@ describe('integration test', function () {
     if (!changeSetId) {
       return this.skip()
     }
-    const index = require('../index')
+    const index = await import(`../index.js?version=${Date.now() + Math.random()}`)
     process.env.PROMPT_ANSWER = 'N'
     await index.maybeReviewChangeSet(changeSetId)
   })
@@ -117,7 +116,7 @@ describe('integration test', function () {
     if (!changeSetId) {
       return this.skip()
     }
-    const index = require('../index')
+    const index = await import(`../index.js?version=${Date.now() + Math.random()}`)
     await index.maybeReviewChangeSet(changeSetId, true)
   })
 
@@ -126,7 +125,7 @@ describe('integration test', function () {
     if (!changeSetId) {
       return this.skip()
     }
-    const index = require('../index')
+    const index = await import(`../index.js?version=${Date.now() + Math.random()}`)
     await index.maybeReviewChangeSet(changeSetId, true)
   })
 
@@ -135,7 +134,7 @@ describe('integration test', function () {
     if (!changeSetId) {
       return this.skip()
     }
-    const index = require('../index')
+    const index = await import(`../index.js?version=${Date.now() + Math.random()}`)
     await index.maybeReviewChangeSet(changeSetId, true)
   })
 })
