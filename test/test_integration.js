@@ -5,15 +5,16 @@ import fs from 'fs'
 import path, { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import {
-  CloudFormationClient,
   CreateChangeSetCommand,
   CreateStackCommand,
   DeleteStackCommand,
   waitUntilStackCreateComplete
 } from '@aws-sdk/client-cloudformation'
 
+import helpers from '../lib/helpers.js'
+
 const RUN_ID = Date.now() + '-' + crypto.randomBytes(4).toString('hex')
-const cfn = new CloudFormationClient({})
+const cfn = helpers.getCloudFormationClient({})
 const stacks = []
 
 const __filename = fileURLToPath(import.meta.url)
