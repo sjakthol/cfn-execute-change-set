@@ -8,7 +8,9 @@ import {
   CreateChangeSetCommand,
   CreateStackCommand,
   DeleteStackCommand,
-  waitUntilStackCreateComplete
+  DescribeChangeSetCommand,
+  waitUntilStackCreateComplete,
+  waitUntilStackUpdateComplete
 } from '@aws-sdk/client-cloudformation'
 
 import helpers from '../lib/helpers.js'
@@ -20,6 +22,8 @@ const stacks = []
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const CASE_DIR = path.join(__dirname, 'test_cases')
+
+const WAITER_OPTIONS = { maxWaitTime: 120, minDelay: 1, maxDelay: 1 }
 
 /**
  * Helper to create a CloudFormation stack and change set for a test case.
@@ -60,7 +64,7 @@ async function createTestStackAndChangeSet (testcase) {
   }
 
   stacks.push(stack.StackId)
-  await waitUntilStackCreateComplete({ client: cfn, maxWaitTime: 120 }, { StackName: stack.StackId })
+  await waitUntilStackCreateComplete({ client: cfn, ...WAITER_OPTIONS }, { StackName: stack.StackId })
 
   console.error(`Creating change set for ${StackName}`)
   const updatedTemplate = fs.readFileSync(path.join(CASE_DIR, testcase, 'updated.yaml'), { encoding: 'utf-8' })
@@ -89,6 +93,7 @@ describe('integration test', function () {
       return this.skip()
     }
     const index = await import(`../index.js?version=${Date.now() + Math.random()}`)
+    process.env.PROMPT_ANSWER = 'N'
     await index.maybeReviewChangeSet(changeSetId, true)
   })
 
@@ -100,6 +105,9 @@ describe('integration test', function () {
     const index = await import(`../index.js?version=${Date.now() + Math.random()}`)
     process.env.PROMPT_ANSWER = 'y'
     await index.maybeReviewChangeSet(changeSetId)
+
+    const chgset = await cfn.send(new DescribeChangeSetCommand({ ChangeSetName: changeSetId }))
+    await waitUntilStackUpdateComplete({ client: cfn, ...WAITER_OPTIONS }, { StackName: chgset.StackId })
   })
 
   it('should skip execution if negative answer is given', async function () {
@@ -118,6 +126,7 @@ describe('integration test', function () {
       return this.skip()
     }
     const index = await import(`../index.js?version=${Date.now() + Math.random()}`)
+    process.env.PROMPT_ANSWER = 'N'
     await index.maybeReviewChangeSet(changeSetId, true)
   })
 
@@ -127,6 +136,7 @@ describe('integration test', function () {
       return this.skip()
     }
     const index = await import(`../index.js?version=${Date.now() + Math.random()}`)
+    process.env.PROMPT_ANSWER = 'N'
     await index.maybeReviewChangeSet(changeSetId, true)
   })
 
@@ -136,6 +146,7 @@ describe('integration test', function () {
       return this.skip()
     }
     const index = await import(`../index.js?version=${Date.now() + Math.random()}`)
+    process.env.PROMPT_ANSWER = 'N'
     await index.maybeReviewChangeSet(changeSetId, true)
   })
 })
