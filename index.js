@@ -1,20 +1,14 @@
 #!/usr/bin/env node
 'use strict'
 
-const readline = require('readline')
+import readline from 'readline'
 
-const chalk = require('chalk')
-let ttys = null
-try {
-  ttys = require('ttys')
-} catch (e) {
-  console.log('Note: Cannot prompt for input. Assuming YES after timeout!')
-}
+import chalk from 'chalk'
 
-const analysis = require('./lib/analysis')
-const cfn = require('./lib/cfn')
-const helpers = require('./lib/helpers')
-const renderers = require('./lib/renderers')
+import analysis from './lib/analysis.js'
+import cfn from './lib/cfn.js'
+import helpers from './lib/helpers.js'
+import renderers from './lib/renderers.js'
 
 let chain = Promise.resolve(true)
 
@@ -166,6 +160,7 @@ async function waitAndExecuteChanges (changeset, wait) {
  * @param {import('@aws-sdk/client-cloudformation').DescribeChangeSetOutput} changeset
  */
 async function promptAndExecuteChanges (changeset) {
+  const ttys = await import('ttys').catch(_err => null)
   if (!ttys) {
     console.log('Executing changeset in 10 seconds. Press CTRL+C to abort!')
     return waitAndExecuteChanges(changeset, 10)
@@ -210,6 +205,6 @@ if (!process.stdin.isTTY) {
 }
 
 // For testing
-module.exports = {
+export {
   maybeReviewChangeSet
 }
