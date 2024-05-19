@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.0 - 2024-05-19
+
+* Bump minimum required Node version to v16 **BREAKING CHANGE**
+* Convert package to ESM and update dependencies to latest versions
+
+## 1.2.0 - 2024-01-31
+
+* Update AWS SDK for JavaScript to version that includes a fix for [aws/aws-sdk-js-v3#4757](https://github.com/aws/aws-sdk-js-v3/issues/4757) and remove the local workaround for that.
+
 ## 1.1.2 - 2023-11-18
 
 * Add workaround for a credential resolution issue in AWS SDK for Javascript v3 (https://github.com/aws/aws-sdk-js-v3/issues/4757)
