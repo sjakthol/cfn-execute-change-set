@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict'
 
+import { pathToFileURL } from 'url'
+import { realpathSync } from 'fs'
 import readline from 'readline'
 
 import chalk from 'chalk'
@@ -160,6 +162,10 @@ async function waitAndExecuteChanges (changeset, wait) {
  * @param {import('@aws-sdk/client-cloudformation').DescribeChangeSetOutput} changeset
  */
 async function promptAndExecuteChanges (changeset) {
+  if (process.env.PROMPT_ANSWER) {
+    return handleAnswer(changeset, process.env.PROMPT_ANSWER)
+  }
+
   const ttys = await import('ttys').catch(_err => null)
   if (!ttys) {
     console.log('Executing changeset in 10 seconds. Press CTRL+C to abort!')
@@ -168,8 +174,20 @@ async function promptAndExecuteChanges (changeset) {
   const i = readline.createInterface(ttys.stdin, ttys.stdout)
   console.log() // Empty line
 
-  const answer = process.env.PROMPT_ANSWER || await new Promise(resolve => i.question('Execute change set [y/N]? ', resolve))
+  const answer = await new Promise(resolve => i.question('Execute change set [y/N]? ', resolve))
   i.close()
+  return handleAnswer(changeset, answer)
+}
+
+/**
+ *
+ * Handle answer to prompt. y for yes, anything else for no.
+ *
+ * @param {import('@aws-sdk/client-cloudformation').DescribeChangeSetOutput} changeset
+ * @param {string} answer
+ * @returns
+ */
+async function handleAnswer (changeset, answer) {
   if (answer === 'y') {
     console.log('Executing change set...')
     return cfn.executeChangeSet(changeset)
@@ -179,29 +197,36 @@ async function promptAndExecuteChanges (changeset) {
   }
 }
 
-// See if we have a changeset ARN(s) given as command line argument(s)
-if (process.argv.length > 2) {
-  for (const input of process.argv.slice(2)) {
-    queueChangeSet(input)
+function run () {
+  // See if we have a changeset ARN(s) given as command line argument(s)
+  if (process.argv.length > 2) {
+    for (const input of process.argv.slice(2)) {
+      queueChangeSet(input)
+    }
+  }
+
+  // Also check if we have been piped some input and detect changeset
+  // IDs from there
+  if (!process.stdin.isTTY) {
+    const rl = readline.createInterface({
+      input: process.stdin
+    })
+
+    rl.on('line', line => {
+      // echo to stdout
+      console.log(line)
+      queueChangeSet(line)
+    })
+
+    rl.on('close', () => {
+      chain.then(() => process.exit(0))
+    })
   }
 }
 
-// Also check if we have been piped some input and detect changeset
-// IDs from there
-if (!process.stdin.isTTY) {
-  const rl = readline.createInterface({
-    input: process.stdin
-  })
-
-  rl.on('line', line => {
-    // echo to stdout
-    console.log(line)
-    queueChangeSet(line)
-  })
-
-  rl.on('close', () => {
-    chain.then(() => process.exit(0))
-  })
+/* istanbul ignore next */
+if (import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
+  run()
 }
 
 // For testing

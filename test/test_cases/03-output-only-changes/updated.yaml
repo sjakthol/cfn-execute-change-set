@@ -1,8 +1,8 @@
 AWSTemplateFormatVersion: 2010-09-09
 
 Resources:
-  Topic1:
-    Type: AWS::SNS::Topic
+  R1:
+    Type: AWS::CloudFormation::WaitConditionHandle
 
 Outputs:
   Output1:
