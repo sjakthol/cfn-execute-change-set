@@ -9,7 +9,8 @@
   },
   "scripts": {
     "test": "c8 --all mocha",
-    "lint": "standard"
+    "lint": "eslint && prettier --check .",
+    "format": "prettier --write . && eslint --fix"
   },
   "files": [
     "lib/",
@@ -37,7 +38,9 @@
   "devDependencies": {
     "c8": "^9.0.0",
     "chai": "^5.1.1",
+    "eslint": "^9.3.0",
+    "eslint-config-prettier": "^9.1.0",
     "mocha": "^10.0.0",
-    "standard": "^17.0.0"
+    "prettier": "^3.2.5"
   }
 }
