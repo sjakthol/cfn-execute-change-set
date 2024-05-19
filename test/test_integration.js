@@ -78,7 +78,9 @@ async function createTestStackAndChangeSet (testcase) {
 }
 
 describe('integration test', function () {
+  const preDeletePromises = []
   after(async () => {
+    await Promise.all(preDeletePromises)
     await Promise.all(stacks.map(async stack => {
       console.error(`Deleting stack ${stack}`)
       await cfn.send(new DeleteStackCommand({ StackName: stack }))
@@ -107,7 +109,7 @@ describe('integration test', function () {
     await index.maybeReviewChangeSet(changeSetId)
 
     const chgset = await cfn.send(new DescribeChangeSetCommand({ ChangeSetName: changeSetId }))
-    await waitUntilStackUpdateComplete({ client: cfn, ...WAITER_OPTIONS }, { StackName: chgset.StackId })
+    preDeletePromises.push(waitUntilStackUpdateComplete({ client: cfn, ...WAITER_OPTIONS }, { StackName: chgset.StackId }))
   })
 
   it('should skip execution if negative answer is given', async function () {
