@@ -1,29 +1,29 @@
-'use strict'
+"use strict";
 /* eslint-env mocha */
-import crypto from 'crypto'
-import fs from 'fs'
-import path, { dirname } from 'path'
-import { fileURLToPath } from 'url'
+import crypto from "crypto";
+import fs from "fs";
+import path, { dirname } from "path";
+import { fileURLToPath } from "url";
 import {
   CreateChangeSetCommand,
   CreateStackCommand,
   DeleteStackCommand,
   DescribeChangeSetCommand,
   waitUntilStackCreateComplete,
-  waitUntilStackUpdateComplete
-} from '@aws-sdk/client-cloudformation'
+  waitUntilStackUpdateComplete,
+} from "@aws-sdk/client-cloudformation";
 
-import helpers from '../lib/helpers.js'
+import helpers from "../lib/helpers.js";
 
-const RUN_ID = Date.now() + '-' + crypto.randomBytes(4).toString('hex')
-const cfn = helpers.getCloudFormationClient({})
-const stacks = []
+const RUN_ID = Date.now() + "-" + crypto.randomBytes(4).toString("hex");
+const cfn = helpers.getCloudFormationClient({});
+const stacks = [];
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-const CASE_DIR = path.join(__dirname, 'test_cases')
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const CASE_DIR = path.join(__dirname, "test_cases");
 
-const WAITER_OPTIONS = { maxWaitTime: 120, minDelay: 1, maxDelay: 1 }
+const WAITER_OPTIONS = { maxWaitTime: 120, minDelay: 1, maxDelay: 1 };
 
 /**
  * Helper to create a CloudFormation stack and change set for a test case.
@@ -35,120 +35,126 @@ const WAITER_OPTIONS = { maxWaitTime: 120, minDelay: 1, maxDelay: 1 }
  * @param {string} testcase - Test case name
  * @return {Promise<string>} Change set ID / ARN of the change set created from updated.yaml template
  */
-async function createTestStackAndChangeSet (testcase) {
-  const StackName = `cfn-execute-change-set-${testcase}-${RUN_ID}-${crypto.randomBytes(4).toString('hex')}`
-  console.error(`Creating stack ${StackName}`)
+async function createTestStackAndChangeSet(testcase) {
+  const StackName = `cfn-execute-change-set-${testcase}-${RUN_ID}-${crypto.randomBytes(4).toString("hex")}`;
+  console.error(`Creating stack ${StackName}`);
 
-  const TemplateBody = fs.readFileSync(path.join(CASE_DIR, testcase, 'initial.yaml'), { encoding: 'utf-8' })
+  const TemplateBody = fs.readFileSync(path.join(CASE_DIR, testcase, "initial.yaml"), { encoding: "utf-8" });
   const cmd = new CreateStackCommand({
     StackName,
-    OnFailure: 'DELETE',
-    TemplateBody
-  })
+    OnFailure: "DELETE",
+    TemplateBody,
+  });
   const stack = await cfn.send(cmd).catch(function (err) {
-    if (err.message === 'Region is missing') {
-      console.error(`Skipping test: ${err.message}`)
-      return
+    if (err.message === "Region is missing") {
+      console.error(`Skipping test: ${err.message}`);
+      return;
     }
-    const skipOnErrors = new Set(['ExpiredToken', 'CredentialsError', 'AccessDenied'])
+    const skipOnErrors = new Set(["ExpiredToken", "CredentialsError", "AccessDenied"]);
     if (skipOnErrors.has(err.Code)) {
-      console.error(`Skipping test: ${err.Code}`)
-      return
+      console.error(`Skipping test: ${err.Code}`);
+      return;
     }
 
-    throw err
-  })
+    throw err;
+  });
 
   if (!stack) {
-    return
+    return;
   }
 
-  stacks.push(stack.StackId)
-  await waitUntilStackCreateComplete({ client: cfn, ...WAITER_OPTIONS }, { StackName: stack.StackId })
+  stacks.push(stack.StackId);
+  await waitUntilStackCreateComplete({ client: cfn, ...WAITER_OPTIONS }, { StackName: stack.StackId });
 
-  console.error(`Creating change set for ${StackName}`)
-  const updatedTemplate = fs.readFileSync(path.join(CASE_DIR, testcase, 'updated.yaml'), { encoding: 'utf-8' })
-  const chgset = await cfn.send(new CreateChangeSetCommand({
-    ChangeSetName: 'integration-test',
-    StackName: stack.StackId,
-    TemplateBody: updatedTemplate
-  }))
+  console.error(`Creating change set for ${StackName}`);
+  const updatedTemplate = fs.readFileSync(path.join(CASE_DIR, testcase, "updated.yaml"), { encoding: "utf-8" });
+  const chgset = await cfn.send(
+    new CreateChangeSetCommand({
+      ChangeSetName: "integration-test",
+      StackName: stack.StackId,
+      TemplateBody: updatedTemplate,
+    }),
+  );
 
-  return chgset.Id
+  return chgset.Id;
 }
 
-describe('integration test', function () {
-  const preDeletePromises = []
+describe("integration test", function () {
+  const preDeletePromises = [];
   after(async () => {
-    await Promise.all(preDeletePromises)
-    await Promise.all(stacks.map(async stack => {
-      console.error(`Deleting stack ${stack}`)
-      await cfn.send(new DeleteStackCommand({ StackName: stack }))
-    }))
-  })
+    await Promise.all(preDeletePromises);
+    await Promise.all(
+      stacks.map(async (stack) => {
+        console.error(`Deleting stack ${stack}`);
+        await cfn.send(new DeleteStackCommand({ StackName: stack }));
+      }),
+    );
+  });
 
-  this.timeout(120000)
+  this.timeout(120000);
 
-  it('should analyze change set without crashing', async function () {
-    const changeSetId = await createTestStackAndChangeSet('01-common-changes')
+  it("should analyze change set without crashing", async function () {
+    const changeSetId = await createTestStackAndChangeSet("01-common-changes");
     if (!changeSetId) {
-      return this.skip()
+      return this.skip();
     }
-    const index = await import(`../index.js?version=${Date.now() + Math.random()}`)
-    process.env.PROMPT_ANSWER = 'N'
-    await index.maybeReviewChangeSet(changeSetId, true)
-  })
+    const index = await import(`../index.js?version=${Date.now() + Math.random()}`);
+    process.env.PROMPT_ANSWER = "N";
+    await index.maybeReviewChangeSet(changeSetId, true);
+  });
 
-  it('should execute a change set correctly', async function () {
-    const changeSetId = await createTestStackAndChangeSet('01-common-changes')
+  it("should execute a change set correctly", async function () {
+    const changeSetId = await createTestStackAndChangeSet("01-common-changes");
     if (!changeSetId) {
-      return this.skip()
+      return this.skip();
     }
-    const index = await import(`../index.js?version=${Date.now() + Math.random()}`)
-    process.env.PROMPT_ANSWER = 'y'
-    await index.maybeReviewChangeSet(changeSetId)
+    const index = await import(`../index.js?version=${Date.now() + Math.random()}`);
+    process.env.PROMPT_ANSWER = "y";
+    await index.maybeReviewChangeSet(changeSetId);
 
-    const chgset = await cfn.send(new DescribeChangeSetCommand({ ChangeSetName: changeSetId }))
-    preDeletePromises.push(waitUntilStackUpdateComplete({ client: cfn, ...WAITER_OPTIONS }, { StackName: chgset.StackId }))
-  })
+    const chgset = await cfn.send(new DescribeChangeSetCommand({ ChangeSetName: changeSetId }));
+    preDeletePromises.push(
+      waitUntilStackUpdateComplete({ client: cfn, ...WAITER_OPTIONS }, { StackName: chgset.StackId }),
+    );
+  });
 
-  it('should skip execution if negative answer is given', async function () {
-    const changeSetId = await createTestStackAndChangeSet('01-common-changes')
+  it("should skip execution if negative answer is given", async function () {
+    const changeSetId = await createTestStackAndChangeSet("01-common-changes");
     if (!changeSetId) {
-      return this.skip()
+      return this.skip();
     }
-    const index = await import(`../index.js?version=${Date.now() + Math.random()}`)
-    process.env.PROMPT_ANSWER = 'N'
-    await index.maybeReviewChangeSet(changeSetId)
-  })
+    const index = await import(`../index.js?version=${Date.now() + Math.random()}`);
+    process.env.PROMPT_ANSWER = "N";
+    await index.maybeReviewChangeSet(changeSetId);
+  });
 
-  it('should handle change sets with no changes', async function () {
-    const changeSetId = await createTestStackAndChangeSet('02-no-changes')
+  it("should handle change sets with no changes", async function () {
+    const changeSetId = await createTestStackAndChangeSet("02-no-changes");
     if (!changeSetId) {
-      return this.skip()
+      return this.skip();
     }
-    const index = await import(`../index.js?version=${Date.now() + Math.random()}`)
-    process.env.PROMPT_ANSWER = 'N'
-    await index.maybeReviewChangeSet(changeSetId, true)
-  })
+    const index = await import(`../index.js?version=${Date.now() + Math.random()}`);
+    process.env.PROMPT_ANSWER = "N";
+    await index.maybeReviewChangeSet(changeSetId, true);
+  });
 
-  it('should handle change sets with output only changes', async function () {
-    const changeSetId = await createTestStackAndChangeSet('03-output-only-changes')
+  it("should handle change sets with output only changes", async function () {
+    const changeSetId = await createTestStackAndChangeSet("03-output-only-changes");
     if (!changeSetId) {
-      return this.skip()
+      return this.skip();
     }
-    const index = await import(`../index.js?version=${Date.now() + Math.random()}`)
-    process.env.PROMPT_ANSWER = 'N'
-    await index.maybeReviewChangeSet(changeSetId, true)
-  })
+    const index = await import(`../index.js?version=${Date.now() + Math.random()}`);
+    process.env.PROMPT_ANSWER = "N";
+    await index.maybeReviewChangeSet(changeSetId, true);
+  });
 
-  it('should handle change sets with metadata only changes', async function () {
-    const changeSetId = await createTestStackAndChangeSet('04-metadata-changes')
+  it("should handle change sets with metadata only changes", async function () {
+    const changeSetId = await createTestStackAndChangeSet("04-metadata-changes");
     if (!changeSetId) {
-      return this.skip()
+      return this.skip();
     }
-    const index = await import(`../index.js?version=${Date.now() + Math.random()}`)
-    process.env.PROMPT_ANSWER = 'N'
-    await index.maybeReviewChangeSet(changeSetId, true)
-  })
-})
+    const index = await import(`../index.js?version=${Date.now() + Math.random()}`);
+    process.env.PROMPT_ANSWER = "N";
+    await index.maybeReviewChangeSet(changeSetId, true);
+  });
+});

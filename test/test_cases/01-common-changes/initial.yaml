@@ -54,7 +54,7 @@ Resources:
 
   # Change caused by new resource
   R9A:
-  # R9B:
+    # R9B:
     Type: AWS::Logs::LogGroup
 
   R10:
