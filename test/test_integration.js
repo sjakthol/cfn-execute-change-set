@@ -1,5 +1,4 @@
 "use strict";
-/* eslint-env mocha */
 import crypto from "crypto";
 import fs from "fs";
 import path, { dirname } from "path";
