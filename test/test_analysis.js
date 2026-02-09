@@ -1,5 +1,4 @@
 "use strict";
-/* eslint-env mocha */
 import { expect } from "chai";
 import analysis from "../lib/analysis.js";
 
