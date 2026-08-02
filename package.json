@@ -28,7 +28,7 @@
   "repository": "sjakthol/cfn-execute-change-set",
   "dependencies": {
     "@aws-sdk/client-cloudformation": "^3.503.1",
-    "chalk": "^5.3.0",
+    "chalk": "^6.0.0",
     "lodash.groupby": "^4.6.0",
     "ttys": "0.0.3"
   },
